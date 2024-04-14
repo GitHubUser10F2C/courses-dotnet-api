@@ -15,6 +15,28 @@ public class AccountController : BaseApiController
         _accountRepository = accountRepository;
     }
 
+    [HttpPost("login")]
+    public async Task<IResult> Login(LoginDto loginDto)
+    {
+        if (
+            await _userRepository.UserExistsByEmailAsync(loginDto.Email) == false
+        )
+        {
+            return TypedResults.BadRequest("Credentials are invalid");
+        }
+
+        if (
+            await _accountRepository.SamePassword(loginDto) == false
+        )
+        {
+            return TypedResults.BadRequest("Credentials are invalid");
+        }
+
+        AccountDto? accountDto = await _accountRepository.GetAccountAsync(loginDto.Email);
+
+        return TypedResults.Ok(accountDto);
+    }
+
     [HttpPost("register")]
     public async Task<IResult> Register(RegisterDto registerDto)
     {
