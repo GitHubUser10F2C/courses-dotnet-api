@@ -61,6 +61,25 @@ public class AccountRepository : IAccountRepository
         return accountDto;
     }
 
+    public async Task<bool> SamePassword(LoginDto loginDto){
+        User? user = await _dataContext
+            .Users.Where(student => student.Email == loginDto.Email)
+            .FirstOrDefaultAsync();
+
+        if (user == null)
+        {
+            return false;
+        }
+
+        using var hmac = new HMACSHA512(user.PasswordSalt);
+
+        if (hmac.ComputeHash(Encoding.UTF8.GetBytes(loginDto.Password)).SequenceEqual(user.PasswordHash)){
+            return true;
+        }
+
+        return false;
+    }
+
     public async Task<bool> SaveChangesAsync()
     {
         return 0 < await _dataContext.SaveChangesAsync();
